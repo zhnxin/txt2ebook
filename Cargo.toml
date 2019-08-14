@@ -1,0 +1,19 @@
+[package]
+authors = ["zhengxin <zhngxin@aliyun.com>"]
+edition = "2018"
+name = "txt4k"
+version = "0.1.0"
+[dependencies]
+clap = "*"
+encoding = "*"
+encodingbufreader = "*"
+htmlescape = "*"
+handlebars = "*"
+regex = "*"
+serde_json = "*"
+toml = "*"
+rust-embed="5.1.0"
+
+[dependencies.serde]
+features = ["derive"]
+version = "1.0"
