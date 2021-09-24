@@ -1,0 +1,26 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN">
+
+<head>
+    <title>{{title}}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="stylesheet.css" type="text/css" rel="stylesheet" />
+    <style type="text/css">
+        @page {
+            margin-bottom: 5pt;
+            margin-top: 5pt;
+        }
+    </style>
+</head>
+
+<body>
+    {{#if is_sub_cha}}
+    <h2 class="subchapter">{{title}}</h2>
+    {{else}}
+    <h1>{{title}}</h1>
+    {{/if}}
+    <div class="content">
+        {{content}}
+    </div>
+</body>
+
+</html>

@@ -1,13 +1,18 @@
 extern crate rust_embed;
-mod chapter;
-mod config;
 use clap::{App, Arg};
 use rust_embed::RustEmbed;
 use std::fs::{File, OpenOptions};
-use std::io::prelude::Write;
+use txt4k::template_type::TemplateType;
 #[derive(RustEmbed)]
 #[folder = "templates/"]
 struct Templates;
+
+#[derive(PartialEq)]
+enum ChapterMachRes {
+    None,
+    SubChapter,
+    Chapter,
+}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = App::new("txt4kindlegen with rust")
@@ -22,114 +27,229 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .default_value(&"config.toml")
                 .takes_value(true),
         )
+        .arg(
+            Arg::with_name("notkindlegen")
+                .short("k")
+                .long("not-kindlegen")
+                .help("disable run kindlegen"),
+        )
+        .arg(
+            Arg::with_name("debug")
+                .short("d")
+                .long("debug")
+                .help("debug not to delete tmp file"),
+        )
         .get_matches();
-    let config = config::Config::from(matches.value_of("config").unwrap_or("config.toml"))?;
-    let chapter_regex = regex::Regex::new(config.get_chapter())?;
+    let config = txt4k::config::Config::from(matches.value_of("config").unwrap_or("config.toml"))?;
+    let chapter_regex = regex::Regex::new(&config.chapter)?;
     let mut is_use_subchapter = false;
-    let subchapter_regex = if config.get_subchapter().is_empty() {
+    let subchapter_regex = if config.subchapter.is_empty() {
         regex::Regex::new(&r"^\s+$")?
     } else {
         is_use_subchapter = true;
-        regex::Regex::new(config.get_subchapter())?
+        regex::Regex::new(&config.subchapter)?
     };
     let blink_regex = regex::Regex::new(&r"^\s*$")?;
-    let mut template_reg = handlebars::Handlebars::new();
-    let opf_name = "opf";
-    let index_name = "index";
-    let ncx_name = "ncx";
-    let toc_name = "toc";
 
-    template_reg.register_template_string(
-        &opf_name,
-        std::str::from_utf8(Templates::get("book.opf").unwrap().as_ref())?,
-    )?;
-    template_reg.register_template_string(
-        &index_name,
-        std::str::from_utf8(Templates::get("index.html").unwrap().as_ref())?,
-    )?;
-    template_reg.register_template_string(
-        &ncx_name,
-        std::str::from_utf8(Templates::get("toc.ncx").unwrap().as_ref())?,
-    )?;
-    template_reg.register_template_string(
-        &toc_name,
-        std::str::from_utf8(Templates::get("toc.xhtml").unwrap().as_ref())?,
-    )?;
-    {
-        let file = File::create("book.opf")?;
-        template_reg.render_to_write(&opf_name, &config, file)?;
+    let mut book_info = txt4k::BookInfo::new(&config);
+    let mut template_reg = handlebars::Handlebars::new();
+    template_reg.register_escape_fn(handlebars::no_escape);
+    for tmp_type in txt4k::template_type::TemplateType::VALUES.iter() {
+        template_reg.register_template_string(
+            tmp_type.to_string().as_str(),
+            std::str::from_utf8(
+                Templates::get(tmp_type.get_file_name())
+                    .unwrap()
+                    .data
+                    .as_ref(),
+            )?,
+        )?;
     }
+    // create output dir
+    let dir_name = txt4k::hash_string(&config.title);
     {
-        let file = File::create("index.html")?;
-        template_reg.render_to_write(&index_name, &config, file)?;
+        std::fs::create_dir_all(&std::fmt::format(format_args!("{}/META-INF", dir_name)))?;
+        std::fs::create_dir_all(&std::fmt::format(format_args!("{}/OEBPS", dir_name)))?;
+        std::fs::write(
+            &std::fmt::format(format_args!("{}/mimetype", dir_name)),
+            "application/epub+zip",
+        )?;
+        std::fs::write(
+            &std::fmt::format(format_args!("{}/META-INF/container.xml", dir_name)),
+            Templates::get("container.xml").unwrap().data.as_ref(),
+        )?;
+        std::fs::write(
+            &std::fmt::format(format_args!("{}/OEBPS/stylesheet.css", dir_name)),
+            Templates::get("stylesheet.css").unwrap().data.as_ref(),
+        )?;
+        let file = File::create(&std::fmt::format(format_args!(
+            "{}/OEBPS/cover.xhtml",
+            dir_name
+        )))?;
+        std::fs::copy(
+            config.cover,
+            &std::fmt::format(format_args!("{}/OEBPS/{}", dir_name, book_info.get_cover())),
+        )?;
+        template_reg.render_to_write(
+            txt4k::template_type::TemplateType::Cover
+                .to_string()
+                .as_str(),
+            &book_info,
+            file,
+        )?;
     }
-    let text_file = OpenOptions::new().read(true).open(config.get_file())?;
-    let encoding_format = encoding::label::encoding_from_whatwg_label(config.get_encoding())
-        .expect("unknow encoding");
+
+    let mut chapter_content = txt4k::chapter::ChapterContent::new();
+
+    let text_file = OpenOptions::new().read(true).open(config.file)?;
+    let encoding_format =
+        encoding::label::encoding_from_whatwg_label(&config.encoding).expect("unknow encoding");
     let bufreader = encodingbufreader::BufReaderEncoding::new(text_file, encoding_format);
-    let mut chapter_infos: Vec<chapter::ChapterInfo> = Vec::new();
-    let mut chapter = chapter::Chapter::new(config.get_title().clone());
-    chapter.set_is_label_p(config.get_is_html_p());
-    let mut book_file = OpenOptions::new()
-        .write(true)
-        .append(true)
-        .open("index.html")?;
-    chapter.write_title_w(&mut book_file)?;
+    let mut match_res: ChapterMachRes;
     for line in bufreader.lines() {
         let line_str = line?;
         if blink_regex.is_match(&line_str) {
             continue;
         } else if chapter_regex.is_match(&line_str) {
-            // chapter.flush(&mut book_file)?;
-            writeln!(&mut book_file, "<mbp:pagebreak/>")?;
-            chapter_infos.push(chapter.get_info());
-            let order = chapter.get_current_order();
-            chapter.restore_w(line_str, order + 1, &mut book_file)?;
+            match_res = ChapterMachRes::Chapter;
         } else if is_use_subchapter && subchapter_regex.is_match(&line_str) {
-            chapter.push_w(line_str, &mut book_file)?;
+            match_res = ChapterMachRes::SubChapter;
         } else {
-            chapter.append_w(&line_str, &mut book_file)?;
+            chapter_content.append(&line_str, config.is_html_p);
+            match_res = ChapterMachRes::None;
+        }
+        if match_res == ChapterMachRes::Chapter || match_res == ChapterMachRes::SubChapter {
+            if book_info.is_chapter_empty() {
+                {
+                    book_info.set_descripration(chapter_content.get_content());
+                    let file = File::create(std::fmt::format(format_args!(
+                        "{:}/OEBPS/title.xhtml",
+                        dir_name
+                    )))?;
+                    template_reg.render_to_write(
+                        TemplateType::Title.to_string().as_str(),
+                        &book_info,
+                        file,
+                    )?;
+                    chapter_content.clear();
+                }
+            } else {
+                let file = if chapter_content.get_is_sub_cha() {
+                    File::create(std::fmt::format(format_args!(
+                        "{}/OEBPS/subchap_{}.html",
+                        dir_name,
+                        book_info.get_current_order()
+                    )))?
+                } else {
+                    File::create(std::fmt::format(format_args!(
+                        "{}/OEBPS/chap_{}.html",
+                        dir_name,
+                        book_info.get_current_order()
+                    )))?
+                };
+                template_reg.render_to_write(
+                    TemplateType::Content.to_string().as_str(),
+                    &chapter_content,
+                    file,
+                )?;
+                chapter_content.clear();
+            }
+        }
+        match match_res {
+            ChapterMachRes::Chapter => {
+                chapter_content.restore(line_str.clone(), false);
+                book_info.add_chapter(line_str);
+            }
+            ChapterMachRes::SubChapter => {
+                chapter_content.restore(line_str.clone(), true);
+                book_info.add_subchapter(line_str);
+            }
+            _ => {}
         }
     }
-    // chapter.flush(&mut book_file)?;
-    chapter_infos.push(chapter.get_info());
-    writeln!(&mut book_file, "\n</body>\n</html>")?;
-    drop(book_file);
+    if !chapter_content.is_empty() {
+        let file = if chapter_content.get_is_sub_cha() {
+            File::create(std::fmt::format(format_args!(
+                "{}/OEBPS/subchap_{}.html",
+                dir_name,
+                book_info.get_current_order()
+            )))?
+        } else {
+            File::create(std::fmt::format(format_args!(
+                "{}/OEBPS/chap_{}.html",
+                dir_name,
+                book_info.get_current_order()
+            )))?
+        };
+        template_reg.render_to_write(
+            TemplateType::Content.to_string().as_str(),
+            &chapter_content,
+            file,
+        )?;
+        chapter_content.clear();
+    }
+    let book_info_data = serde_json::json!(book_info);
     {
-        let file = File::create("toc.ncx")?;
-        template_reg.render_to_write(&ncx_name, &chapter_infos, file)?;
+        let file = File::create(std::fmt::format(format_args!(
+            "{}/OEBPS/content.opf",
+            dir_name
+        )))?;
+        template_reg.render_to_write(
+            TemplateType::Opf.to_string().as_str(),
+            &book_info_data,
+            file,
+        )?;
     }
     {
-        let file = File::create("toc.xhtml")?;
-        template_reg.render_to_write(&toc_name, &chapter_infos, file)?;
+        let file = File::create(std::fmt::format(format_args!(
+            "{}/OEBPS/catalog.html",
+            dir_name
+        )))?;
+        template_reg.render_to_write(
+            TemplateType::Catalog.to_string().as_str(),
+            &book_info_data,
+            file,
+        )?;
     }
-    let output = if cfg!(target_os = "windows") {
-        std::process::Command::new("kindlegen.exe")
-            .args(&vec![
-                "-dont_append_source",
-                "-c1",
-                "-o",
-                format!("{}", format_args!("{}.mobi", config.get_title())).as_str(),
-                "book.opf",
-            ])
-            .output()
-            .expect("failed to execute kindlegen")
-    } else {
-        std::process::Command::new("kindlegen")
-            .args(&vec![
-                "-dont_append_source",
-                "-c1",
-                "-o",
-                format!("{}", format_args!("{}.mobi", config.get_title())).as_str(),
-                "book.opf",
-            ])
-            .output()
-            .expect("failed to execute kindlegen")
-    };
-    println!("{}", String::from_utf8_lossy(&output.stdout));
-    std::fs::remove_file("index.html")?;
-    std::fs::remove_file("book.opf")?;
-    std::fs::remove_file("toc.ncx")?;
-    std::fs::remove_file("toc.xhtml")?;
+
+    {
+        let file = File::create(std::fmt::format(format_args!("{}/OEBPS/toc.ncx", dir_name)))?;
+        template_reg.render_to_write(
+            TemplateType::Ncx.to_string().as_str(),
+            &book_info_data,
+            file,
+        )?;
+    }
+    let epub_file_name = std::fmt::format(format_args!("{}.epub", &config.title));
+    txt4k::zip_book(&dir_name, &epub_file_name)?;
+    if !matches.is_present("debug") {
+        std::fs::remove_dir_all(&dir_name)?;
+    }
+    if !matches.is_present("notkindlegen") {
+        let output = if cfg!(target_os = "windows") {
+            std::process::Command::new("kindlegen.exe")
+                .args(&vec![
+                    "-dont_append_source",
+                    "-c1",
+                    "-o",
+                    format!("{}", format_args!("{}.mobi", &config.title)).as_str(),
+                    &epub_file_name,
+                ])
+                .output()
+                .expect("failed to execute kindlegen")
+        } else {
+            std::process::Command::new("kindlegen")
+                .args(&vec![
+                    "-dont_append_source",
+                    "-c1",
+                    "-o",
+                    format!("{}", format_args!("{}.mobi", &config.title)).as_str(),
+                    &epub_file_name,
+                ])
+                .output()
+                .expect("failed to execute kindlegen")
+        };
+        println!("{}", String::from_utf8_lossy(&output.stdout));
+    }
     Ok(())
 }

@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN">
+
+<head>
+    <title>封面</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="stylesheet.css" type="text/css" rel="stylesheet" />
+    <style type="text/css">
+        @page {
+            margin-bottom: 5pt;
+            margin-top: 5pt;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="cover">
+        <img src="{{cover}}" alt="{{title}}" />
+    </div>
+    <div class="bookinfo">
+        <ul>
+            <li><b>书名</b>：<span>{{title}}</span></li>
+            <li><b>作者</b>：<span>{{author}}</span></li>
+            {{#if descripration}}
+            <li><b>简介</b>：
+                <pre>{{descripration}}</pre>
+            </li>
+            {{/if}}
+        </ul>
+    </div>
+</body>
+
+</html>

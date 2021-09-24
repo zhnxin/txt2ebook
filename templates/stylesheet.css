@@ -1,0 +1,18 @@
+* { white-space: normal; }
+body { margin: 8px; padding: 0px; font-size: 63%; }
+li, p { font-size: 1.4em; }
+p { text-indent: 2em; line-height: 1.4em; margin-top: 0px; margin-bottom: 10px; }
+h1 { text-align: center; page-break-before: always; font-size: 1.6em; line-height: 1.4em; font-weight: bold; border-bottom: dotted 2px Red; }
+a { color: blue; text-decoration: underline; }
+.cover { padding: 20px; text-align: center; }
+.cover img { border: solid #CCC 1px; padding: 3px; }
+.cover img:hover { background: #EFEFEF; }
+.bookinfo ul { padding: 5px; margin: 0px; list-style-type: none; border: solid #CCC 1px; margin-bottom: 6px; }
+.bookinfo ul li { padding: 5px; margin: 0px; border-bottom: dotted #CCC 1px; }
+.bookinfo ul li pre { font-size: 14px; margin-left: 30px; word-wrap: break-word; word-break: break-all; }
+ul.catalog, .content { margin: 2px; padding: 0px; }
+ul.catalog li a { display: block; margin: 0px; text-indent: 1.4em; line-height: 1.7em; color: Black; text-decoration: none; }
+ul.catalog li { display: block; background-color: #FFF; height:1.7em; overflow: hidden; opacity: 0.8; }
+ul.catalog li:hover.even, ul.catalog li:hover { background-color: #3f3f3f; }
+ul.catalog li:hover a { color: White; }
+ul.catalog li.even { background-color: #EFEFEF; border-bottom-color: #CCC; border-top-color: #999; border-style: solid; border-width: 1px 0px; }

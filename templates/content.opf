@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='utf-8'?>
+<package xmlns="http://www.idpf.org/2007/opf" xmlns:dc="http://purl.org/dc/elements/1.1/" unique-identifier="book_id" version="2.0">
+    <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+        <dc:title>{{title}}</dc:title>
+        <dc:creator>{{author}}</dc:creator>
+        <dc:language>zh-CN</dc:language>
+        <meta name="cover" content="cover-image" />
+    </metadata>
+    <manifest>
+        <item id="cover" href="cover.xhtml" media-type="application/xhtml+xml" />
+        <item id="title-page" href="title.xhtml" media-type="application/xhtml+xml" />
+        <item id="catalog" href="catalog.html" media-type="application/xhtml+xml" />
+        {{#each chapter as |c|}}
+        <item id="chap_{{c.chapter.id}}" href="chap_{{c.chapter.id}}.html" media-type="application/xhtml+xml" />
+        {{#each c.subchapter as |subchap|}}
+        <item id="subchap_{{subchap.id}}" href="subchap_{{subchap.id}}.html" media-type="application/xhtml+xml" />
+        {{/each}}
+        {{/each}}
+        <item id="cover-image" href="{{cover}}" media-type="image/jpeg" />
+        <item id="stylesheet" href="stylesheet.css" media-type="text/css" />
+        <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
+    </manifest>
+    <spine toc="ncx">
+        <itemref idref="cover" />
+        <itemref idref="title-page" />
+        <itemref idref="catalog" />
+        {{#each chapter}}
+        <itemref idref="chap_{{this.chapter.id}}" />
+        {{/each}}
+    </spine>
+    <guide>
+        <reference href="cover.xhtml" type="cover" title="封面" />
+        <reference href="title.xhtml" type="title-page" title="书籍信息" />
+        <reference href="catalog.html" type="toc" title="目录" />
+    </guide>
+</package>
