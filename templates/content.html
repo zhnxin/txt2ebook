@@ -1,7 +1,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN">
 
 <head>
-    <title>{{title}}</title>
+    <title>{{data.metadata.title}}</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link href="stylesheet.css" type="text/css" rel="stylesheet" />
     <style type="text/css">
@@ -13,14 +13,21 @@
 </head>
 
 <body>
-    {{#if is_sub_cha}}
-    <h2 class="subchapter">{{title}}</h2>
+    {{#if data.metadata.has_sub_chap}}
+    <h1 class="chapter"id="chap_{{data.metadata.id}}" >{{data.metadata.title}}</h1>
     {{else}}
-    <h1>{{title}}</h1>
+    <h2 class="subchapter" id="chap_{{data.metadata.id}}">{{data.metadata.title}}</h2>
     {{/if}}
     <div class="content">
-        {{content}}
+        {{data.content}}
     </div>
+    {{#each subchapter as |subchap|}}
+    <div class="subchap">
+        <h2 class="subchapter" id="subchap_{{subchap.metadata.id}}">{{subchap.metadata.title}}</h2>
+        <div class="content">
+            {{subchap.content}}
+        </div>
+    </div>
+    {{/each}}
 </body>
-
 </html>

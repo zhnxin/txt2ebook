@@ -33,17 +33,17 @@
             <content src="catalog.html" />
         </navPoint>
         {{#each chapter as |c|}}
-        <navPoint class="h2" id="chap_{{c.chapter.id}}" playOrder="{{c.chapter.order}}">
+        <navPoint class="h2" id="chap_{{c.chapter.id}}" playOrder="{{c.chapter.id}}">
             <navLabel>
                 <text>{{c.chapter.title}}</text>
             </navLabel>
-            <content src="chap_{{c.chapter.id}}.html" />
+            <content src="chap_{{c.chapter.id}}.html#chap_{{c.chapter.id}}" />
             {{#each c.subchapter as |subchap|}}
-            <navPoint class="h3" id="subchap_{{subchap.id}}" playOrder="{{subchap.order}}">
+            <navPoint class="h3" id="subchap_{{subchap.id}}" playOrder="{{subchap.id}}">
                 <navLabel>
                     <text>{{subchap.title}}</text>
                 </navLabel>
-                <content src="subchap_{{subchap.id}}.html" />
+                <content src="chap_{{c.chapter.id}}.html#subchap_{{subchap.id}}" />
             </navPoint>
             {{/each}}
         </navPoint>

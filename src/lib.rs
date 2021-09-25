@@ -11,7 +11,7 @@ pub struct BookInfo {
     author: String,
     descripration: String,
     chapter: Vec<chapter::ChapterInfo>,
-    current_order: isize,
+    current_order: usize,
 }
 impl BookInfo {
     pub fn new(conf: &config::Config) -> Self {
@@ -49,7 +49,7 @@ impl BookInfo {
         }
     }
 
-    pub fn get_current_order(&self) -> isize {
+    pub fn get_current_order(&self) -> usize {
         self.current_order
     }
 

@@ -20,18 +20,22 @@
 
 <body>
     <h1>目录</h1>
-    <ul class="catalog">
-        <li><a href="cover.xhtml">封面</a></li>
-        <li class="even"><a href="title.xhtml">书籍信息</a></li>
-        <li><a href="catalog.html">目录</a></li>
-        {{#each chapter as |c| }}
-        <li class="{{#if c.chapter.has_sub_chap }}chapter{{else}}subchapter{{/if}}"><a
-                href="chap_{{c.chapter.id}}.html">{{c.chapter.title}}</a></li>
-        {{#each c.subchapter as |subchap|}}
-        <li class="subchapter"><a href="subchap_{{subchap.id}}.html">{{subchap.title}}</a></li>
-        {{/each}}
-        {{/each}}
-    </ul>
+    <section class="base" id="toc">
+        <nav epub:type="toc" class="catalog">
+            <ol>
+                <li class="chapter"><a href="cover.xhtml">封面</a></li>
+                <li class="chapter"><a href="title.xhtml">书籍信息</a></li>
+                <li class="chapter"><a href="catalog.html">目录</a></li>
+                {{#each chapter as |c| }}
+                <li class="{{#if c.chapter.has_sub_chap }}chapter{{else}}subchapter{{/if}}"><a
+                        href="chap_{{c.chapter.id}}.html#chap_{{c.chapter.id}}">{{c.chapter.title}}</a></li>
+                {{# if c.subchapter}}<ol>
+                    {{#each c.subchapter as |subchap|}}<li class="subchapter"><a href="chap_{{c.chapter.id}}.html#subchap_{{subchap.id}}">{{subchap.title}}</a></li>
+                    {{/each}}
+                </ol>{{/if}}
+                {{/each}}
+            </ol>
+        </nav>
+    </section>
 </body>
-
 </html>

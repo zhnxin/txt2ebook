@@ -7,12 +7,6 @@ use txt4k::template_type::TemplateType;
 #[folder = "templates/"]
 struct Templates;
 
-#[derive(PartialEq)]
-enum ChapterMachRes {
-    None,
-    SubChapter,
-    Chapter,
-}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = App::new("txt4kindlegen with rust")
@@ -99,94 +93,61 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )?;
     }
 
-    let mut chapter_content = txt4k::chapter::ChapterContent::new();
+    let mut chapter_content = txt4k::chapter::MainChapter::new(String::new(),4);
 
     let text_file = OpenOptions::new().read(true).open(config.file)?;
     let encoding_format =
         encoding::label::encoding_from_whatwg_label(&config.encoding).expect("unknow encoding");
     let bufreader = encodingbufreader::BufReaderEncoding::new(text_file, encoding_format);
-    let mut match_res: ChapterMachRes;
     for line in bufreader.lines() {
         let line_str = line?;
         if blink_regex.is_match(&line_str) {
             continue;
         } else if chapter_regex.is_match(&line_str) {
-            match_res = ChapterMachRes::Chapter;
-        } else if is_use_subchapter && subchapter_regex.is_match(&line_str) {
-            match_res = ChapterMachRes::SubChapter;
-        } else {
-            chapter_content.append(&line_str, config.is_html_p);
-            match_res = ChapterMachRes::None;
-        }
-        if match_res == ChapterMachRes::Chapter || match_res == ChapterMachRes::SubChapter {
             if book_info.is_chapter_empty() {
-                {
-                    book_info.set_descripration(chapter_content.get_content());
-                    let file = File::create(std::fmt::format(format_args!(
-                        "{:}/OEBPS/title.xhtml",
-                        dir_name
-                    )))?;
-                    template_reg.render_to_write(
-                        TemplateType::Title.to_string().as_str(),
-                        &book_info,
-                        file,
-                    )?;
-                    chapter_content.clear();
-                }
+                book_info.set_descripration(chapter_content.get_chapter_content());
+                let file = File::create(std::fmt::format(format_args!(
+                    "{:}/OEBPS/title.xhtml",
+                    dir_name
+                )))?;
+                template_reg.render_to_write(
+                    TemplateType::Title.to_string().as_str(),
+                    &book_info,
+                    file,
+                )?;
             } else {
-                let file = if chapter_content.get_is_sub_cha() {
-                    File::create(std::fmt::format(format_args!(
-                        "{}/OEBPS/subchap_{}.html",
-                        dir_name,
-                        book_info.get_current_order()
-                    )))?
-                } else {
-                    File::create(std::fmt::format(format_args!(
-                        "{}/OEBPS/chap_{}.html",
-                        dir_name,
-                        book_info.get_current_order()
-                    )))?
-                };
+                let file = File::create(std::fmt::format(format_args!(
+                    "{}/OEBPS/chap_{}.html",
+                    dir_name,
+                    chapter_content.get_id()
+                )))?;
                 template_reg.render_to_write(
                     TemplateType::Content.to_string().as_str(),
                     &chapter_content,
                     file,
                 )?;
-                chapter_content.clear();
             }
-        }
-        match match_res {
-            ChapterMachRes::Chapter => {
-                chapter_content.restore(line_str.clone(), false);
-                book_info.add_chapter(line_str);
-            }
-            ChapterMachRes::SubChapter => {
-                chapter_content.restore(line_str.clone(), true);
-                book_info.add_subchapter(line_str);
-            }
-            _ => {}
+            book_info.add_chapter(line_str.clone());
+            chapter_content.restore(line_str,book_info.get_current_order());
+        } else if is_use_subchapter && subchapter_regex.is_match(&line_str) {
+            book_info.add_subchapter(line_str.clone());
+            chapter_content.add_subchapter(line_str, book_info.get_current_order());
+        } else {
+            chapter_content.append(&line_str, config.is_html_p);
         }
     }
     if !chapter_content.is_empty() {
-        let file = if chapter_content.get_is_sub_cha() {
-            File::create(std::fmt::format(format_args!(
-                "{}/OEBPS/subchap_{}.html",
-                dir_name,
-                book_info.get_current_order()
-            )))?
-        } else {
-            File::create(std::fmt::format(format_args!(
-                "{}/OEBPS/chap_{}.html",
-                dir_name,
-                book_info.get_current_order()
-            )))?
-        };
+        let file = File::create(std::fmt::format(format_args!(
+            "{}/OEBPS/chap_{}.html",
+            dir_name,
+            chapter_content.get_id()
+        )))?;
         template_reg.render_to_write(
             TemplateType::Content.to_string().as_str(),
             &chapter_content,
             file,
         )?;
-        chapter_content.clear();
+        chapter_content.restore(String::new(),0);
     }
     let book_info_data = serde_json::json!(book_info);
     {
