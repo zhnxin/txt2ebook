@@ -1,10 +1,10 @@
-# txt4kindlegen
-`txt for kindlegen base rust language`:
-A Simple tool to convent text file to a mobi file by `kindlegen`
+# txt2ebook
+`txt for kindlegen and epub format ebook base rust language`:
+A Simple tool to convent text file to epub format and mobi file by `kindlegen`
 
 ## Usage
 ```
-usage: txt4kindlegen [<flags>]
+usage: txt2ebook [<flags>]
 
 Flags:
   -c, --config="config.toml"  config file
