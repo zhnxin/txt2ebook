@@ -21,6 +21,7 @@
     <div class="content">
         {{data.content}}
     </div>
+    <mbp:pagebreak/>
     {{#each subchapter as |subchap|}}
     <div class="subchap">
         <h2 class="subchapter" id="subchap_{{subchap.metadata.id}}">{{subchap.metadata.title}}</h2>
@@ -28,6 +29,7 @@
             {{subchap.content}}
         </div>
     </div>
+    <mbp:pagebreak/>
     {{/each}}
 </body>
 </html>
