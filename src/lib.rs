@@ -1,13 +1,23 @@
-pub mod chapter;
-pub mod config;
-pub mod template_type;
-pub mod zip_utils;
+mod chapter;
+mod config;
+mod template_type;
+mod zip_utils;
+pub use self::chapter::{ChapterInfo, MainChapter};
+pub use self::config::Config;
+pub use self::template_type::TemplateType;
+pub use self::zip_utils::zip;
+use rust_embed::RustEmbed;
 #[warn(dead_code)]
 use serde::Serialize;
+#[derive(RustEmbed)]
+#[folder = "templates/"]
+pub struct TemplateAssets;
+
 #[derive(Serialize)]
 pub struct BookInfo {
     title: String,
     cover: String,
+    cover_source: String,
     author: String,
     descripration: String,
     chapter: Vec<chapter::ChapterInfo>,
@@ -23,11 +33,58 @@ impl BookInfo {
         Self {
             title: conf.title.clone(),
             cover: cover,
+            cover_source: conf.cover.clone(),
             author: conf.author.clone(),
             descripration: String::new(),
             chapter: Vec::new(),
             current_order: 3,
         }
+    }
+
+    pub fn get_title(&self) -> &String {
+        &self.title
+    }
+    pub fn render_title(
+        &mut self,
+        descripration: String,
+        dir_name: &String,
+        template: &handlebars::Handlebars,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.descripration = descripration;
+        let file = std::fs::File::create(std::fmt::format(format_args!(
+            "{:}/OEBPS/title.xhtml",
+            dir_name
+        )))?;
+        template.render_to_write(TemplateType::Title.to_string().as_str(), self, file)?;
+        Ok(())
+    }
+    pub fn render_left(
+        &self,
+        dir_name: &String,
+        template: &handlebars::Handlebars,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        {
+            let file = std::fs::File::create(std::fmt::format(format_args!(
+                "{}/OEBPS/content.opf",
+                dir_name
+            )))?;
+            template.render_to_write(TemplateType::Opf.to_string().as_str(), self, file)?;
+        }
+        {
+            let file = std::fs::File::create(std::fmt::format(format_args!(
+                "{}/OEBPS/catalog.html",
+                dir_name
+            )))?;
+            template.render_to_write(TemplateType::Catalog.to_string().as_str(), self, file)?;
+        }
+        {
+            let file = std::fs::File::create(std::fmt::format(format_args!(
+                "{}/OEBPS/toc.ncx",
+                dir_name
+            )))?;
+            template.render_to_write(TemplateType::Ncx.to_string().as_str(), self, file)?;
+        }
+        Ok(())
     }
     pub fn get_cover(&self) -> &String {
         &self.cover
@@ -69,4 +126,83 @@ pub fn hash_string(s: &String) -> String {
 
 pub fn zip_book(dir_name: &str, output_file: &str) -> zip::result::ZipResult<()> {
     zip_utils::zip(dir_name, output_file, zip::CompressionMethod::Deflated)
+}
+
+pub fn prepare_book(
+    dir_name: &String,
+    template: &handlebars::Handlebars,
+    book_info: &BookInfo,
+) -> Result<(), Box<dyn std::error::Error>> {
+    std::fs::create_dir_all(&std::fmt::format(format_args!("{}/META-INF", dir_name)))?;
+    std::fs::create_dir_all(&std::fmt::format(format_args!("{}/OEBPS", dir_name)))?;
+    std::fs::write(
+        &std::fmt::format(format_args!("{}/mimetype", dir_name)),
+        "application/epub+zip",
+    )?;
+    std::fs::write(
+        &std::fmt::format(format_args!("{}/META-INF/container.xml", dir_name)),
+        TemplateAssets::get("container.xml").unwrap().data.as_ref(),
+    )?;
+    std::fs::write(
+        &std::fmt::format(format_args!("{}/OEBPS/stylesheet.css", dir_name)),
+        TemplateAssets::get("stylesheet.css").unwrap().data.as_ref(),
+    )?;
+    let file = std::fs::File::create(&std::fmt::format(format_args!(
+        "{}/OEBPS/cover.xhtml",
+        dir_name
+    )))?;
+    std::fs::copy(
+        &book_info.cover_source,
+        &std::fmt::format(format_args!("{}/OEBPS/{}", dir_name, book_info.get_cover())),
+    )?;
+    template.render_to_write(TemplateType::Cover.to_string().as_str(), &book_info, file)?;
+    Ok(())
+}
+
+pub fn render_content(
+    chapter_content: &MainChapter,
+    dir_name: &String,
+    template: &handlebars::Handlebars,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let file = std::fs::File::create(std::fmt::format(format_args!(
+        "{}/OEBPS/chap_{}.html",
+        dir_name,
+        chapter_content.get_id()
+    )))?;
+    template.render_to_write(
+        TemplateType::Content.to_string().as_str(),
+        &chapter_content,
+        file,
+    )?;
+    Ok(())
+}
+
+pub fn run_kindlegen(book_name: &String, source_file: &String) {
+    if cfg!(target_os = "windows") {
+        std::process::Command::new("kindlegen.exe")
+            .args(&vec![
+                "-dont_append_source",
+                "-c1",
+                "-o",
+                format!("{}", format_args!("{}.mobi", book_name)).as_str(),
+                source_file,
+            ])
+            .stdout(std::process::Stdio::inherit())
+            .stderr(std::process::Stdio::inherit())
+            .output()
+            .expect("failed to execute kindlegen")
+    } else {
+        std::process::Command::new("kindlegen")
+            .args(&vec![
+                "-dont_append_source",
+                "-c1",
+                "-o",
+                format!("{}", format_args!("{}.mobi", book_name)).as_str(),
+                source_file,
+            ])
+            .stderr(std::process::Stdio::inherit())
+            .stdout(std::process::Stdio::inherit())
+            .output()
+            .expect("failed to execute kindlegen")
+    };
 }
