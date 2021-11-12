@@ -4,6 +4,7 @@ use std::io::prelude::*;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
     pub title: String,
+    #[serde(default)]
     pub cover: String,
     pub author: String,
     pub chapter: String,

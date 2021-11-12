@@ -14,9 +14,9 @@
 </head>
 
 <body>
-    <div class="cover">
+    {{#if cover}}<div class="cover">
         <img src="{{cover}}" alt="{{title}}" />
-    </div>
+    </div>{{/if}}
     <div class="bookinfo">
         <ul>
             <li><b>书名</b>：<span>{{title}}</span></li>

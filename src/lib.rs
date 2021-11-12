@@ -27,8 +27,10 @@ impl BookInfo {
     pub fn new(conf: &config::Config) -> Self {
         let cover = if conf.cover.ends_with(".png") || conf.cover.ends_with(".PNG") {
             String::from("cover.png")
-        } else {
+        } else if !conf.cover.is_empty() {
             String::from("cover.jpg")
+        } else {
+            String::new()
         };
         Self {
             title: conf.title.clone(),
@@ -151,10 +153,12 @@ pub fn prepare_book(
         "{}/OEBPS/cover.xhtml",
         dir_name
     )))?;
-    std::fs::copy(
-        &book_info.cover_source,
-        &std::fmt::format(format_args!("{}/OEBPS/{}", dir_name, book_info.get_cover())),
-    )?;
+    if !book_info.get_cover().is_empty() {
+        std::fs::copy(
+            &book_info.cover_source,
+            &std::fmt::format(format_args!("{}/OEBPS/{}", dir_name, book_info.get_cover())),
+        )?;
+    }
     template.render_to_write(TemplateType::Cover.to_string().as_str(), &book_info, file)?;
     Ok(())
 }

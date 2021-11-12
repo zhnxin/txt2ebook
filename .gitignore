@@ -3,3 +3,4 @@
 config.toml
 *.epub
 *.mobi
+.DS_Store
