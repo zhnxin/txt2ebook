@@ -17,7 +17,7 @@
         {{/each}}
         {{#if cover}}
         <item id="cover-image" href="{{cover}}" media-type="image/jpeg" />
-
+        {{/if}}
         <item id="stylesheet" href="stylesheet.css" media-type="text/css" />
         <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
     </manifest>
