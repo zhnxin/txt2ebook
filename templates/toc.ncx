@@ -14,19 +14,13 @@
         <text>{{author}}</text>
     </docAuthor>
     <navMap>
-        <navPoint class="h2" id="cover" playOrder="1">
-            <navLabel>
-                <text>封面</text>
-            </navLabel>
-            <content src="cover.xhtml" />
-        </navPoint>
-        <navPoint class="h2" id="title-page" playOrder="2">
+        <navPoint class="h2" id="title-page" playOrder="1">
             <navLabel>
                 <text>书籍信息</text>
             </navLabel>
             <content src="title.xhtml" />
         </navPoint>
-        <navPoint class="h2" id="catalog" playOrder="3">
+        <navPoint class="h2" id="catalog" playOrder="2">
             <navLabel>
                 <text>目录</text>
             </navLabel>

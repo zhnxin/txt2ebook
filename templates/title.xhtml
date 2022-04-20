@@ -10,6 +10,9 @@
             margin-bottom: 5pt;
             margin-top: 5pt;
         }
+        preline {
+            white-space: pre-line;
+        }
     </style>
 </head>
 
@@ -23,9 +26,7 @@
             <li><b>作者</b>：<span>{{author}}</span></li>
             {{#if descripration}}
             <li><b>简介</b>：
-                <pre>
-                    {{descripration}}
-                </pre>
+                <div class="preline">{{descripration}}</div>
             </li>
             {{/if}}
         </ul>

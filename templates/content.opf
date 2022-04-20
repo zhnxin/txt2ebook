@@ -9,15 +9,16 @@
         {{/if}}
     </metadata>
     <manifest>
+        {{#if cover}}
+        <item id="cover" href="{{cover}}" media-type="image/jpeg" />
+        {{else}}
         <item id="cover" href="cover.xhtml" media-type="application/xhtml+xml" />
+        {{/if}}
         <item id="title-page" href="title.xhtml" media-type="application/xhtml+xml" />
         <item id="catalog" href="catalog.html" media-type="application/xhtml+xml" />
         {{#each chapter as |c|}}
         <item id="chap_{{c.chapter.id}}" href="chap_{{c.chapter.id}}.html" media-type="application/xhtml+xml" />
         {{/each}}
-        {{#if cover}}
-        <item id="cover-image" href="{{cover}}" media-type="image/jpeg" />
-        {{/if}}
         <item id="stylesheet" href="stylesheet.css" media-type="text/css" />
         <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
     </manifest>
@@ -30,7 +31,11 @@
         {{/each}}
     </spine>
     <guide>
+        {{#if cover}}
+        <reference href="{{cover}}" type="cover" title="封面" />
+        {{else}}
         <reference href="cover.xhtml" type="cover" title="封面" />
+        {{/if}}
         <reference href="title.xhtml" type="title-page" title="书籍信息" />
         <reference href="catalog.html" type="toc" title="目录" />
     </guide>

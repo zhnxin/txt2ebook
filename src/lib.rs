@@ -149,17 +149,18 @@ pub fn prepare_book(
         &std::fmt::format(format_args!("{}/OEBPS/stylesheet.css", dir_name)),
         TemplateAssets::get("stylesheet.css").unwrap().data.as_ref(),
     )?;
-    let file = std::fs::File::create(&std::fmt::format(format_args!(
-        "{}/OEBPS/cover.xhtml",
-        dir_name
-    )))?;
     if !book_info.get_cover().is_empty() {
         std::fs::copy(
             &book_info.cover_source,
             &std::fmt::format(format_args!("{}/OEBPS/{}", dir_name, book_info.get_cover())),
         )?;
+    }else{
+        let file = std::fs::File::create(&std::fmt::format(format_args!(
+            "{}/OEBPS/cover.xhtml",
+            dir_name
+        )))?;
+        template.render_to_write(TemplateType::Cover.to_string().as_str(), &book_info, file)?;
     }
-    template.render_to_write(TemplateType::Cover.to_string().as_str(), &book_info, file)?;
     Ok(())
 }
 

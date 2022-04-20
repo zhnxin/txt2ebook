@@ -73,7 +73,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let dir_name = txt4k::hash_string(&config.title);
     txt4k::prepare_book(&dir_name, &template_reg, &book_info)?;
 
-    let mut chapter_content = txt4k::MainChapter::new(String::new(), 4);
+    let mut chapter_content = txt4k::MainChapter::new(String::new(), 3);
 
     let text_file = OpenOptions::new().read(true).open(config.file)?;
     let encoding_format =
