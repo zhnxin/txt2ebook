@@ -3,18 +3,9 @@ use clap::{App, Arg};
 use std::fs::OpenOptions;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let matches = App::new("txt4kindlegen with rust")
+    let matches = App::new("txt2ebookindlegen with rust")
         .author("zhngxin@aliyun.com")
         .about("convert text file to kindlegen format")
-        .arg(
-            Arg::with_name("config")
-                .short("c")
-                .long("config")
-                .value_name("FILE")
-                .help("Set a custom toml config file")
-                .default_value(&"config.toml")
-                .takes_value(true),
-        )
         .arg(
             Arg::with_name("notkindlegen")
                 .short("k")
@@ -33,18 +24,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .long("generate-config")
                 .help("generate example config file"),
         )
+        .arg(
+            Arg::with_name("config")
+                .value_name("FILE")
+                .help("Set a custom toml config file")
+                .default_value(&"config.toml")
+                .takes_value(true),
+        )
         .get_matches();
     if matches.is_present("generateconfig") {
         std::fs::write(
             matches.value_of("config").unwrap_or("config.toml"),
-            txt4k::TemplateAssets::get("config.toml.tmpl")
+            txt2ebook::TemplateAssets::get("config.toml.tmpl")
                 .unwrap()
                 .data
                 .as_ref(),
         )?;
         return Ok(());
     }
-    let config = txt4k::Config::from(matches.value_of("config").unwrap_or("config.toml"))?;
+    let config = txt2ebook::Config::from(matches.value_of("config").unwrap_or("config.toml"))?;
     let chapter_regex = regex::Regex::new(&config.chapter)?;
     let mut is_use_subchapter = false;
     let subchapter_regex = if config.subchapter.is_empty() {
@@ -55,14 +53,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     let blink_regex = regex::Regex::new(&r"^\s*$")?;
 
-    let mut book_info = txt4k::BookInfo::new(&config);
+    let mut book_info = txt2ebook::BookInfo::new(&config);
     let mut template_reg = handlebars::Handlebars::new();
     template_reg.register_escape_fn(handlebars::no_escape);
-    for tmp_type in txt4k::TemplateType::VALUES.iter() {
+    for tmp_type in txt2ebook::TemplateType::VALUES.iter() {
         template_reg.register_template_string(
             tmp_type.to_string().as_str(),
             std::str::from_utf8(
-                txt4k::TemplateAssets::get(tmp_type.get_file_name())
+                txt2ebook::TemplateAssets::get(tmp_type.get_file_name())
                     .unwrap()
                     .data
                     .as_ref(),
@@ -70,10 +68,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )?;
     }
     // create output dir
-    let dir_name = txt4k::hash_string(&config.title);
-    txt4k::prepare_book(&dir_name, &template_reg, &book_info)?;
+    let dir_name = txt2ebook::hash_string(&config.title);
+    txt2ebook::prepare_book(&dir_name, &template_reg, &book_info)?;
 
-    let mut chapter_content = txt4k::MainChapter::new(String::new(), 3);
+    let mut chapter_content = txt2ebook::MainChapter::new(String::new(), 3);
 
     let text_file = OpenOptions::new().read(true).open(config.file)?;
     let encoding_format =
@@ -91,7 +89,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     &template_reg,
                 )?;
             } else {
-                txt4k::render_content(&chapter_content, &dir_name, &template_reg)?;
+                txt2ebook::render_content(&chapter_content, &dir_name, &template_reg)?;
             }
             book_info.add_chapter(line_str.clone());
             chapter_content.restore(line_str, book_info.get_current_order());
@@ -103,17 +101,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
     if !chapter_content.is_empty() {
-        txt4k::render_content(&chapter_content, &dir_name, &template_reg)?;
+        txt2ebook::render_content(&chapter_content, &dir_name, &template_reg)?;
         chapter_content.restore(String::new(), 0);
     }
     book_info.render_left(&dir_name, &template_reg)?;
     let epub_file_name = std::fmt::format(format_args!("{}.epub", &config.title));
-    txt4k::zip_book(&dir_name, &epub_file_name)?;
+    txt2ebook::zip_book(&dir_name, &epub_file_name)?;
     if !matches.is_present("debug") {
         std::fs::remove_dir_all(&dir_name)?;
     }
     if !matches.is_present("notkindlegen") {
-        txt4k::run_kindlegen(book_info.get_title(), &epub_file_name);
+        txt2ebook::run_kindlegen(book_info.get_title(), &epub_file_name);
     }
     Ok(())
 }
