@@ -28,8 +28,8 @@
                 {{#each chapter as |c| }}
                 <li class="{{#if c.chapter.has_sub_chap }}chapter{{else}}subchapter{{/if}}"><a
                         href="chap_{{c.chapter.id}}.html#chap_{{c.chapter.id}}">{{c.chapter.title}}</a></li>
-                {{# if c.subchapter}}<ol>
-                    {{#each c.subchapter as |subchap|}}<li class="subchapter"><a href="chap_{{c.chapter.id}}.html#subchap_{{subchap.id}}">{{subchap.title}}</a></li>
+                {{# if c.subchapter}}<ol>{{#each c.subchapter as |subchap|}}
+                    <li class="subchapter"><a href="chap_{{c.chapter.id}}.html#subchap_{{subchap.id}}">{{subchap.title}}</a></li>
                     {{/each}}
                 </ol>{{/if}}
                 {{/each}}
