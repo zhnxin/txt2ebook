@@ -2,40 +2,37 @@
 <package xmlns="http://www.idpf.org/2007/opf" xmlns:dc="http://purl.org/dc/elements/1.1/" unique-identifier="book_id" version="2.0">
     <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
         <dc:title>{{title}}</dc:title>
+        <dc:language>zh</dc:language>
+        <dc:identifier id="book_id">{{uid}}</dc:identifier>
         <dc:creator>{{author}}</dc:creator>
-        <dc:language>zh-CN</dc:language>
-        {{#if cover}}
-        <meta name="cover" content="cover-image" />
-        {{/if}}
+        <dc:source>txt2epub:{{uid}}</dc:source>
+        <meta name="output encoding" content="utf-8" />
+        {{#if cover}}<meta name="cover" content="cover_img" />{{/if}}
     </metadata>
     <manifest>
         {{#if cover}}
-        <item id="cover" href="{{cover}}" media-type="image/jpeg" />
-        {{else}}
-        <item id="cover" href="cover.xhtml" media-type="application/xhtml+xml" />
+        <item id="cover_img" href="Images/{{cover}}" media-type="image/jpeg" />
         {{/if}}
-        <item id="title-page" href="title.xhtml" media-type="application/xhtml+xml" />
-        <item id="catalog" href="catalog.html" media-type="application/xhtml+xml" />
+        <item id="cover-page" href="Xhtml/cover.xhtml" media-type="application/xhtml+xml" />
+        <item id="title-page" href="Xhtml/title.xhtml" media-type="application/xhtml+xml" />
+        <item id="catalog" href="Xhtml/catalog.xhtml" media-type="application/xhtml+xml" />
         {{#each chapter as |c|}}
-        <item id="chap_{{c.chapter.id}}" href="chap_{{c.chapter.id}}.html" media-type="application/xhtml+xml" />
+        <item id="chap_{{c.chapter.id}}" href="Xhtml/chap_{{c.chapter.id}}.xhtml" media-type="application/xhtml+xml"/>
         {{/each}}
-        <item id="stylesheet" href="stylesheet.css" media-type="text/css" />
-        <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
+        <item id="stylesheet" href="Styles/stylesheet.css" media-type="text/css"/>
+        <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
     </manifest>
     <spine toc="ncx">
-        <itemref idref="title-page" />
-        <itemref idref="catalog" />
+        <itemref idref="cover-page" />
+        <itemref idref="title-page" linear="no"/>
+        <itemref idref="catalog"/>
         {{#each chapter}}
-        <itemref idref="chap_{{this.chapter.id}}" />
+        <itemref idref="chap_{{this.chapter.id}}"/>
         {{/each}}
     </spine>
     <guide>
-        {{#if cover}}
-        <reference href="{{cover}}" type="cover" title="封面" />
-        {{else}}
-        <reference href="cover.xhtml" type="cover" title="封面" />
-        {{/if}}
-        <reference href="title.xhtml" type="title-page" title="书籍信息" />
-        <reference href="catalog.html" type="toc" title="目录" />
+        <reference href="Xhtml/cover.xhtml" type="cover" title="封面"/>
+        <reference href="Xhtml/title.xhtml" type="title-page" title="书籍信息"/>
+        <reference href="Xhtml/catalog.xhtml" type="toc" title="目录"/>
     </guide>
 </package>

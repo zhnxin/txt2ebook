@@ -25,8 +25,8 @@ impl TemplateType {
     pub fn get_file_name(&self) -> &'static str {
         match *self {
             Self::Opf => "content.opf",
-            Self::Catalog => "catalog.html",
-            Self::Content => "content.html",
+            Self::Catalog => "catalog.xhtml",
+            Self::Content => "content.xhtml",
             Self::Ncx => "toc.ncx",
             Self::Cover => "cover.xhtml",
             Self::Title => "title.xhtml",

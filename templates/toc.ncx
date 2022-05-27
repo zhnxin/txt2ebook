@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
     <head>
-        <meta content="{{site_pinyin}}:{{book_id}}" name="dtb:uid" />
+        <meta content="{{uid}}" name="dtb:uid" />
         <meta content="1" name="dtb:depth" />
-        <meta content="{{site_name}}, {{site}}" name="dtb:generator" />
-        <meta content="0" name="dtb:totalPageCount" />
-        <meta content="0" name="dtb:maxPageNumber" />
+        <meta content="txt2book" name="dtb:generator"/>
+        <meta content="0" name="dtb:totalPageCount"/>
+        <meta content="0" name="dtb:maxPageNumber"/>
     </head>
     <docTitle>
         <text>{{title}}</text>
@@ -14,30 +14,36 @@
         <text>{{author}}</text>
     </docAuthor>
     <navMap>
-        <navPoint class="h2" id="title-page" playOrder="1">
+        <navPoint class="h2" id="cover-page" playOrder="1">
+            <navLabel>
+                <text>封面</text>
+            </navLabel>
+            <content src="Xhtml/cover.xhtml" />
+        </navPoint>
+        <navPoint class="h2" id="title-page" playOrder="2">
             <navLabel>
                 <text>书籍信息</text>
             </navLabel>
-            <content src="title.xhtml" />
+            <content src="Xhtml/title.xhtml" />
         </navPoint>
-        <navPoint class="h2" id="catalog" playOrder="2">
+        <navPoint class="h2" id="catalog" playOrder="3">
             <navLabel>
                 <text>目录</text>
             </navLabel>
-            <content src="catalog.html" />
+            <content src="Xhtml/catalog.xhtml" />
         </navPoint>
         {{#each chapter as |c|}}
         <navPoint class="h2" id="chap_{{c.chapter.id}}" playOrder="{{c.chapter.id}}">
             <navLabel>
                 <text>{{c.chapter.title}}</text>
             </navLabel>
-            <content src="chap_{{c.chapter.id}}.html#chap_{{c.chapter.id}}" />
+            <content src="Xhtml/chap_{{c.chapter.id}}.xhtml#chap_{{c.chapter.id}}" />
             {{#each c.subchapter as |subchap|}}
             <navPoint class="h3" id="subchap_{{subchap.id}}" playOrder="{{subchap.id}}">
                 <navLabel>
                     <text>{{subchap.title}}</text>
                 </navLabel>
-                <content src="chap_{{c.chapter.id}}.html#subchap_{{subchap.id}}" />
+                <content src="Xhtml/chap_{{c.chapter.id}}.xhtml#subchap_{{subchap.id}}" />
             </navPoint>
             {{/each}}
         </navPoint>

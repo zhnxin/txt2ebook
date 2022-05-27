@@ -3,8 +3,11 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>Cover</title>
+    <title>{{title}}</title>
+    <link href="../Styles/stylesheet.css" type="text/css" rel="stylesheet" />
     <style type="text/css" title="override_css">
+        svg {padding: 0pt; margin:0pt}
+        body { text-align: center; padding:0pt; margin: 0pt; }
         @page {
             padding: 0pt;
             margin: 0pt;
@@ -53,6 +56,13 @@
 </head>
 
 <body>
+    {{#if cover}}<div>
+        <svg xmlns="http://www.w3.org/2000/svg" height="100%" preserveAspectRatio="xMidYMid meet" version="1.1"
+            viewBox="0 0 869 1246" width="100%" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <image height="1246" width="869" xlink:href="../Images/{{cover}}" />
+        </svg>
+    </div>
+    {{else}}
     <div class="text-cover-wrap">
         <div class="text-cover-grid"></div>
         <div class="text-cover-content">
@@ -60,6 +70,7 @@
             <h3 class="author"><b>{{author}}</b> 著</h3>
         </div>
     </div>
+    {{/if}}
 </body>
 
 </html>

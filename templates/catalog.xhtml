@@ -1,0 +1,52 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN">
+
+<head>
+    <title>{{title}}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="../Styles/stylesheet.css" type="text/css" rel="stylesheet" />
+    <style type="text/css">
+        body {
+            margin: 0px;
+            padding: 0px;
+            background-color: White;
+        }
+
+        @page {
+            margin-bottom: 5pt;
+            margin-top: 5pt;
+        }
+
+        .toc-title {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 1em;
+            text-align: center;
+        }
+
+        .toc-chapter {
+            margin-left: 0;
+        }
+
+        .toc-subchapter {
+            margin-left: 2em;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 class="toc-title">目录</h1>
+    <ol>
+        <li class="toc-chapter"><a href="title.xhtml">书籍信息</a></li>
+        <li class="toc-chapter"><a href="catalog.xhtml">目录</a></li>
+        {{#each chapter as |c| }}
+        <li class="toc-{{#if c.chapter.has_sub_chap }}chapter{{else}}subchapter{{/if}}"><a
+                href="chap_{{c.chapter.id}}.xhtml#chap_{{c.chapter.id}}">{{c.chapter.title}}</a></li>
+        {{# if c.subchapter}}{{#each c.subchapter as |subchap|}}
+        <li class="toc-subchapter"><a href="chap_{{c.chapter.id}}.xhtml#subchap_{{subchap.id}}">{{subchap.title}}</a>
+        </li>
+        {{/each}}{{/if}}
+        {{/each}}
+    </ol>
+</body>
+
+</html>

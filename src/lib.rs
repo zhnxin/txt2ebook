@@ -22,6 +22,7 @@ pub struct BookInfo {
     descripration: String,
     chapter: Vec<chapter::ChapterInfo>,
     current_order: usize,
+    uid:String,
 }
 impl BookInfo {
     pub fn new(conf: &config::Config) -> Self {
@@ -40,11 +41,15 @@ impl BookInfo {
             descripration: String::new(),
             chapter: Vec::new(),
             current_order: 3,
+            uid:hash_string(&conf.title),
         }
     }
 
     pub fn get_title(&self) -> &String {
         &self.title
+    }
+    pub fn get_uid(&self) ->&String{
+        &self.uid
     }
     pub fn render_title(
         &mut self,
@@ -54,7 +59,7 @@ impl BookInfo {
     ) -> Result<(), Box<dyn std::error::Error>> {
         self.descripration = descripration;
         let file = std::fs::File::create(std::fmt::format(format_args!(
-            "{:}/OEBPS/title.xhtml",
+            "{:}/OEBPS/Xhtml/title.xhtml",
             dir_name
         )))?;
         template.render_to_write(TemplateType::Title.to_string().as_str(), self, file)?;
@@ -74,7 +79,7 @@ impl BookInfo {
         }
         {
             let file = std::fs::File::create(std::fmt::format(format_args!(
-                "{}/OEBPS/catalog.html",
+                "{}/OEBPS/Xhtml/catalog.xhtml",
                 dir_name
             )))?;
             template.render_to_write(TemplateType::Catalog.to_string().as_str(), self, file)?;
@@ -137,6 +142,9 @@ pub fn prepare_book(
 ) -> Result<(), Box<dyn std::error::Error>> {
     std::fs::create_dir_all(&std::fmt::format(format_args!("{}/META-INF", dir_name)))?;
     std::fs::create_dir_all(&std::fmt::format(format_args!("{}/OEBPS", dir_name)))?;
+    std::fs::create_dir_all(&std::fmt::format(format_args!("{}/OEBPS/Xhtml", dir_name)))?;
+    std::fs::create_dir_all(&std::fmt::format(format_args!("{}/OEBPS/Styles", dir_name)))?;
+    std::fs::create_dir_all(&std::fmt::format(format_args!("{}/OEBPS/Images", dir_name)))?;
     std::fs::write(
         &std::fmt::format(format_args!("{}/mimetype", dir_name)),
         "application/epub+zip",
@@ -146,17 +154,18 @@ pub fn prepare_book(
         TemplateAssets::get("container.xml").unwrap().data.as_ref(),
     )?;
     std::fs::write(
-        &std::fmt::format(format_args!("{}/OEBPS/stylesheet.css", dir_name)),
+        &std::fmt::format(format_args!("{}/OEBPS/Styles/stylesheet.css", dir_name)),
         TemplateAssets::get("stylesheet.css").unwrap().data.as_ref(),
     )?;
     if !book_info.get_cover().is_empty() {
         std::fs::copy(
             &book_info.cover_source,
-            &std::fmt::format(format_args!("{}/OEBPS/{}", dir_name, book_info.get_cover())),
+            &std::fmt::format(format_args!("{}/OEBPS/Images/{}", dir_name, book_info.get_cover())),
         )?;
-    }else{
+    }
+    {
         let file = std::fs::File::create(&std::fmt::format(format_args!(
-            "{}/OEBPS/cover.xhtml",
+            "{}/OEBPS/Xhtml/cover.xhtml",
             dir_name
         )))?;
         template.render_to_write(TemplateType::Cover.to_string().as_str(), &book_info, file)?;
@@ -170,7 +179,7 @@ pub fn render_content(
     template: &handlebars::Handlebars,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let file = std::fs::File::create(std::fmt::format(format_args!(
-        "{}/OEBPS/chap_{}.html",
+        "{}/OEBPS/Xhtml/chap_{}.xhtml",
         dir_name,
         chapter_content.get_id()
     )))?;

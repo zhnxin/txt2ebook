@@ -3,7 +3,7 @@
 <head>
     <title>{{data.metadata.title}}</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <link href="stylesheet.css" type="text/css" rel="stylesheet" />
+    <link href="../Styles/stylesheet.css" type="text/css" rel="stylesheet" />
     <style type="text/css">
         @page {
             margin-bottom: 5pt;
@@ -14,14 +14,15 @@
 
 <body>
     {{#if data.metadata.has_sub_chap}}
-    <h1 class="chapter"id="chap_{{data.metadata.id}}" >{{data.metadata.title}}</h1>
+    <h1 class="chapter" id="chap_{{data.metadata.id}}">{{data.metadata.title}}</h1>
     {{else}}
     <h2 class="subchapter" id="chap_{{data.metadata.id}}">{{data.metadata.title}}</h2>
     {{/if}}
-    <div class="content">
+    {{#if data.content}}<div class="content">
         {{data.content}}
     </div>
-    <mbp:pagebreak/>
+    {{/if}}
+    <div style="page-break-after: always" />
     {{#each subchapter as |subchap|}}
     <div class="subchap">
         <h2 class="subchapter" id="subchap_{{subchap.metadata.id}}">{{subchap.metadata.title}}</h2>
@@ -29,7 +30,8 @@
             {{subchap.content}}
         </div>
     </div>
-    <mbp:pagebreak/>
+    <div style="page-break-after: always" />
     {{/each}}
 </body>
+
 </html>

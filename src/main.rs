@@ -9,8 +9,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .arg(
             Arg::with_name("notkindlegen")
                 .short("k")
-                .long("not-kindlegen")
-                .help("disable run kindlegen"),
+                .long("kindlegen")
+                .help("run kindlegen"),
         )
         .arg(
             Arg::with_name("debug")
@@ -68,7 +68,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )?;
     }
     // create output dir
-    let dir_name = txt2ebook::hash_string(&config.title);
+    let dir_name = book_info.get_title().clone();
     txt2ebook::prepare_book(&dir_name, &template_reg, &book_info)?;
 
     let mut chapter_content = txt2ebook::MainChapter::new(String::new(), 3);
@@ -110,7 +110,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if !matches.is_present("debug") {
         std::fs::remove_dir_all(&dir_name)?;
     }
-    if !matches.is_present("notkindlegen") {
+    if matches.is_present("kindlegen") {
         txt2ebook::run_kindlegen(book_info.get_title(), &epub_file_name);
     }
     Ok(())
