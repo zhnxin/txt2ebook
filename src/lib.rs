@@ -59,7 +59,7 @@ impl BookInfo {
     ) -> Result<(), Box<dyn std::error::Error>> {
         self.descripration = descripration;
         let file = std::fs::File::create(std::fmt::format(format_args!(
-            "{:}/OEBPS/Xhtml/title.xhtml",
+            "{}/OEBPS/Xhtml/title.xhtml",
             dir_name
         )))?;
         template.render_to_write(TemplateType::Title.to_string().as_str(), self, file)?;

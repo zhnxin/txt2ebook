@@ -68,7 +68,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )?;
     }
     // create output dir
-    let dir_name = book_info.get_title().clone();
+    let dir_name = txt2ebook::hash_string(book_info.get_title());
     txt2ebook::prepare_book(&dir_name, &template_reg, &book_info)?;
 
     let mut chapter_content = txt2ebook::MainChapter::new(String::new(), 3);
