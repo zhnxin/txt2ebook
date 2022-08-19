@@ -7,20 +7,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .author("zhngxin@aliyun.com")
         .about("convert text file to kindlegen format")
         .arg(
-            Arg::with_name("notkindlegen")
-                .short("k")
+            Arg::with_name("kindlegen")
+                .short('k')
                 .long("kindlegen")
-                .help("run kindlegen"),
+                .help("run kindlegen after epub file generated"),
         )
         .arg(
             Arg::with_name("debug")
-                .short("d")
+                .short('d')
                 .long("debug")
                 .help("debug not to delete tmp file"),
         )
         .arg(
             Arg::with_name("generateconfig")
-                .short("g")
+                .short('g')
                 .long("generate-config")
                 .help("generate example config file"),
         )
