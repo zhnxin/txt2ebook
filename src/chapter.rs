@@ -89,10 +89,10 @@ impl ChapterContent {
     pub fn append(&mut self, content: &String, is_label_p: bool) {
         if is_label_p {
             self.content.push_str("<p>");
-            self.content.push_str(content.trim());
+            self.content.push_str(&html_escape::encode_text(content.trim()).into_owned());
             self.content.push_str("</p>\n");
         } else {
-            self.content.push_str(content);
+            self.content.push_str(&html_escape::encode_text(content.trim()).into_owned());
             self.content.push('\n');
         }
         self.content.push_str("<br/>");

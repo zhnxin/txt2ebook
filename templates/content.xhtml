@@ -22,7 +22,7 @@
         {{data.content}}
     </div>
     {{/if}}
-    <div style="page-break-after: always" />
+    <div class="page-break"></div>
     {{#each subchapter as |subchap|}}
     <div class="subchap">
         <h2 class="subchapter" id="subchap_{{subchap.metadata.id}}">{{subchap.metadata.title}}</h2>
@@ -30,7 +30,7 @@
             {{subchap.content}}
         </div>
     </div>
-    <div style="page-break-after: always" />
+    <div class="page-break"></div>
     {{/each}}
 </body>
 
