@@ -14,9 +14,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .arg(
             Arg::with_name("debug")
-                .short('d')
                 .long("debug")
                 .help("debug not to delete tmp file"),
+        )
+        .arg(
+            Arg::with_name("dir")
+                .long("dir")
+                .value_name("DIR")
+                .short('d')
+                .help("output dir path")
+                .takes_value(true),
         )
         .arg(
             Arg::with_name("generateconfig")
@@ -26,6 +33,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .arg(
             Arg::with_name("config")
+                .short('c')
                 .value_name("FILE")
                 .help("Set a custom toml config file")
                 .default_value(&"config.toml")
@@ -54,6 +62,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let blink_regex = regex::Regex::new(&r"^\s*$")?;
 
     let mut book_info = txt2ebook::BookInfo::new(&config);
+    if let Some(dir) = matches.value_of("dir") {
+        if !dir.is_empty() {
+            book_info.set_out_dir(dir);
+        }
+    }
     let mut template_reg = handlebars::Handlebars::new();
     template_reg.register_escape_fn(handlebars::no_escape);
     for tmp_type in txt2ebook::TemplateType::VALUES.iter() {
@@ -105,13 +118,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         chapter_content.restore(String::new(), 0);
     }
     book_info.render_left(&dir_name, &template_reg)?;
-    let epub_file_name = std::fmt::format(format_args!("{}.epub", &config.title));
+    let epub_file_name = book_info.get_output_file() + ".epub";
     txt2ebook::zip_book(&dir_name, &epub_file_name)?;
     if !matches.is_present("debug") {
         std::fs::remove_dir_all(&dir_name)?;
     }
     if matches.is_present("kindlegen") {
-        txt2ebook::run_kindlegen(book_info.get_title(), &epub_file_name);
+        txt2ebook::run_kindlegen(&config.title, &epub_file_name);
     }
     Ok(())
 }

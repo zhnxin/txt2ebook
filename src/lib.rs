@@ -22,7 +22,8 @@ pub struct BookInfo {
     descripration: String,
     chapter: Vec<chapter::ChapterInfo>,
     current_order: usize,
-    uid:String,
+    uid: String,
+    out_dir: String,
 }
 impl BookInfo {
     pub fn new(conf: &config::Config) -> Self {
@@ -41,14 +42,34 @@ impl BookInfo {
             descripration: String::new(),
             chapter: Vec::new(),
             current_order: 3,
-            uid:hash_string(&conf.title),
+            uid: hash_string(&conf.title),
+            out_dir: String::new(),
+        }
+    }
+    pub fn get_output_file(&self) -> String{
+        std::fmt::format(format_args!(
+            "{}{}",
+            self.out_dir, self.title
+        ))
+    }
+
+    pub fn get_out_dir(&self) -> &String {
+        &self.out_dir
+    }
+    pub fn set_out_dir(&mut self, dir: &str) {
+        if dir.is_empty() {
+            return;
+        }
+        self.out_dir = String::from(dir);
+        if !self.out_dir.ends_with("/") {
+            self.out_dir.push('/');
         }
     }
 
     pub fn get_title(&self) -> &String {
         &self.title
     }
-    pub fn get_uid(&self) ->&String{
+    pub fn get_uid(&self) -> &String {
         &self.uid
     }
     pub fn render_title(
@@ -160,7 +181,11 @@ pub fn prepare_book(
     if !book_info.get_cover().is_empty() {
         std::fs::copy(
             &book_info.cover_source,
-            &std::fmt::format(format_args!("{}/OEBPS/Images/{}", dir_name, book_info.get_cover())),
+            &std::fmt::format(format_args!(
+                "{}/OEBPS/Images/{}",
+                dir_name,
+                book_info.get_cover()
+            )),
         )?;
     }
     {
